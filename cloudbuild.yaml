@@ -15,9 +15,9 @@ steps:
     '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA'
   ]
 
-# 3. Desplegar en Cloud Run.
-# Utilizamos una versión específica del gcloud SDK para evitar errores de conexión.
-- name: 'gcr.io/google-cloud-sdk/gcloud:454.0.0'
+# 3. Despliegue con una versión más estable y prefijo AR.
+# El error 412 se resuelve usando una imagen más ligera y especificando el host AR completo.
+- name: 'gcr.io/cloud-builders/gcloud-slim' 
   args:
     - 'run'
     - 'deploy'
@@ -30,7 +30,6 @@ steps:
 images:
 - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA'
 
-# Estas variables fueron configuradas y verificadas en los pasos anteriores.
 substitutions:
   _SERVICE_NAME: 'my-web-app'
   _REGION: 'us-central1'
