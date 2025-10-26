@@ -1,24 +1,43 @@
-# cloudbuild.yaml
 steps:
-  # 1️⃣ Construir la imagen
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/xrubi-fd22e/test-domina/app:latest', '.']
+# 1. Construir la imagen de Docker. Usa el SHA del commit como etiqueta de versión.
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build', 
+    '-t', 
+    '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA', 
+    '.'
+  ]
 
-  # 2️⃣ Subir a Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/xrubi-fd22e/test-domina/app:latest']
+# 2. Empujar la imagen a Artifact Registry.
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'push', 
+    '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA'
+  ]
 
-  # 3️⃣ Desplegar en Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
-    args: [
-      'run', 'deploy', 'test-domina-service',
-      '--image', 'us-central1-docker.pkg.dev/xrubi-fd22e/test-domina/app:latest',
-      '--region', 'us-central1',
-      '--platform', 'managed',
-      '--allow-unauthenticated=false',
-      '--quiet'
-    ]
-
+# 3. Desplegar en Cloud Run.
+# El flag '--allow-unauthenticated' hace el servicio público, y Cloud Run
+# gestiona automáticamente el certificado SSL y fuerza el tráfico HTTPS.
+- name: 'gcr.io/google-cloud-sdk/gcloud'
+  args:
+    - 'run'
+    - 'deploy'
+    - '${_SERVICE_NAME}'
+    - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA'
+    - '--region=${_REGION}'
+    - '--platform=managed'
+    - '--allow-unauthenticated'
+    
+# Esto es necesario para que Cloud Build sepa qué imagen guardar.
 images:
-  - 'us-central1-docker.pkg.dev/xrubi-fd22e/test-domina/app:latest'
+- '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA'
+
+# Estas variables deben coincidir con tu configuración en Artifact Registry y Cloud Run.
+substitutions:
+  _SERVICE_NAME: 'my-web-app'
+  _REGION: 'us-central1'
+  _REPO_NAME: 'my-app-repo' 
+
+options:
+  # Solo guarda los logs de los pasos del build para ahorrar espacio.
+  logging: CLOUD_LOGGING_ONLY
