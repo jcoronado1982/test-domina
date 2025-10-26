@@ -1,0 +1,24 @@
+# cloudbuild.yaml
+steps:
+  # 1️⃣ Construir la imagen
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/xrubi-fd22e/test-domina/app:latest', '.']
+
+  # 2️⃣ Subir a Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/xrubi-fd22e/test-domina/app:latest']
+
+  # 3️⃣ Desplegar en Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'run', 'deploy', 'test-domina-service',
+      '--image', 'us-central1-docker.pkg.dev/xrubi-fd22e/test-domina/app:latest',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated=false',
+      '--quiet'
+    ]
+
+images:
+  - 'us-central1-docker.pkg.dev/xrubi-fd22e/test-domina/app:latest'
