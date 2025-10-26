@@ -1,5 +1,5 @@
 steps:
-# 1. Construir la imagen de Docker. Usa el SHA del commit como etiqueta de versión.
+# 1. Construir la imagen de Docker.
 - name: 'gcr.io/cloud-builders/docker'
   args: [
     'build', 
@@ -16,9 +16,8 @@ steps:
   ]
 
 # 3. Desplegar en Cloud Run.
-# El flag '--allow-unauthenticated' hace el servicio público, y Cloud Run
-# gestiona automáticamente el certificado SSL y fuerza el tráfico HTTPS.
-- name: 'gcr.io/google-cloud-sdk/gcloud'
+# Utilizamos una versión específica del gcloud SDK para evitar errores de conexión.
+- name: 'gcr.io/google-cloud-sdk/gcloud:454.0.0'
   args:
     - 'run'
     - 'deploy'
@@ -28,16 +27,14 @@ steps:
     - '--platform=managed'
     - '--allow-unauthenticated'
     
-# Esto es necesario para que Cloud Build sepa qué imagen guardar.
 images:
 - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_SERVICE_NAME}:$COMMIT_SHA'
 
-# Estas variables deben coincidir con tu configuración en Artifact Registry y Cloud Run.
+# Estas variables fueron configuradas y verificadas en los pasos anteriores.
 substitutions:
   _SERVICE_NAME: 'my-web-app'
   _REGION: 'us-central1'
   _REPO_NAME: 'my-app-repo' 
 
 options:
-  # Solo guarda los logs de los pasos del build para ahorrar espacio.
   logging: CLOUD_LOGGING_ONLY
