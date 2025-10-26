@@ -8,7 +8,7 @@ app = Flask(__name__)
 @app.route('/')
 def hello_world():
     # Mensaje de confirmación de despliegue y tarea 1 completada
-    return '¡Hola, Cloud Run y CI/CD de Google Cloud! conectado con gitHub atraves de un trigger in google cloud run.'
+    return '¡Hola, Cloud Run y CI/CD de Google Cloud! conectado con gitHub atraves de un trigger in google cloud.'
 
 # Inicia la aplicación. 
 # Cloud Run inyecta la variable de entorno $PORT, que Gunicorn usará.
